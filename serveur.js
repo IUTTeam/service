@@ -15,14 +15,18 @@ let traiteurRequetes = async function(requete,reponse)
     switch (requeteURL.pathname) {
     	case consts.URL_ENVOYER_DONNEES_SERVEUR:
     		fonctionUtilisee = envoyerDonneeAuServeur;
+		// console.log("1");
     		break;
         case consts.URL_RECEVOIR_DONNEES_SERVEUR:
         	fonctionUtilisee = recevoirDonneeDeServeur;
+		// console.log("2");
         	break;
         case consts.URL_RECEVOIR_TYPES_SERVEUR:
         	fonctionUtilisee = recevoirTypesDeServeur;
+		// console.log("3");
         	break;
         default:
+		// console.log("default");
         	fonctionUtilisee = requeteParDefaut;
         	break;
     }
@@ -41,7 +45,7 @@ let envoyerDonneeAuServeur = async function(requete, callback) {
 
 	const connexionSQL = getConnexionSQL();
 
-    if (requete.method === REQUETE_METHODE_POST) {
+    if (requete.method === consts.REQUETE_METHODE_POST) {
     	let donneesPost = '';
     	requete.on('data', function(partie) {
         	donneesPost += partie.toString();
