@@ -1,8 +1,18 @@
 {
+  "name": "service",
+  "main": "serveur.js",
+  "version": "1.0.0",
+  "description": "Service",
   "dependencies": {
     "http": "0.0.0",
     "mysql": "^2.18.1",
     "url": "^0.11.0",
     "util": "^0.12.2"
-  }
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
 }
