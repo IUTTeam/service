@@ -1,10 +1,10 @@
-/////////////////////////////////////////////////////////
-/////PARTIE RECEPTION DES DONNÉES (du système embarqué):
-/////////////////////////////////////////////////////////
+# PARTIE RECEPTION DES DONNÉES (du système embarqué):
 
-envoyer au serveur à l'url : NOM_SITE/send_data et au port : 1234 (temporaire)
+envoyer au serveur à l'url : `NOM_SITE/send_data` et au port : `1234` (temporaire)
 
 ...une méthode POST dont le body contient un JSON du format suivant :
+
+```JSON
 {
 	"type":NOM_TYPE,
 	"donnees":[
@@ -14,21 +14,21 @@ envoyer au serveur à l'url : NOM_SITE/send_data et au port : 1234 (temporaire)
 		[VALEUR_DONNEE_N, TIMESTAMP_PRISE_DONNEE_N]
 	]
 }
+```
 
-Les timestamps sont des timestamps UNIX classiques (càd nombre de secondes depuis 1er Janvier 1970)
-Pour le moment, une seul requête par type de données que l'on souhaite envoyer, si cela pose des contraintes à voir pour modifier l'architecture du JSON...
+Les timestamps sont des timestamps UNIX classiques (càd nombre de secondes depuis 1<sup>er</sup> Janvier 1970)
+Pour le moment, une seule requête par type de données que l'on souhaite envoyer, si cela pose des contraintes à voir pour modifier l'architecture du JSON...
 
-/////////////////////////////////////////////////////////
-/////PARTIE ENVOI DES DONNÉES (de l'application client):
-/////////////////////////////////////////////////////////
+# PARTIE ENVOI DES DONNÉES (de l'application client):
 
-envoyer au serveur à l'url : NOM_SITE/request_data et au port : 1234
+envoyer au serveur à l'URL : `NOM_SITE/request_data` et au port : `1234`
 
-...une méthode GET présisant le type de la donnée recherchée, et par 2 timestamps l'intervalle désirée. Les clés correspondantes sont "type", "temponDebut", "temponFin"
-ex : NOM_SITE/request_from_server?type=temperature&temponDebut=0&temponFin=2500
+...une méthode GET présisant le type de la donnée recherchée, et par 2 timestamps l'intervalle désirée. Les clés correspondantes sont "`type`", "`temponDebut`", "`temponFin`"
+ex : `NOM_SITE/request_from_server?type=temperature&temponDebut=0&temponFin=2500`
 
 La réponse est un JSON de format (même format que réception des données) : 
 
+```JSON
 {
 	"type":NOM_TYPE,
 	"donnees":[
@@ -38,13 +38,15 @@ La réponse est un JSON de format (même format que réception des données) :
 		[VALEUR_DONNEE_N, TIMESTAMP_PRISE_DONNEE_N]
 	]
 }
+```
 
-/////////////////////////////////////////////////////////
+----
 
 Pour recevoir tous les types :
-envoyer une requête (méthode GET) à l'url : NOM_SITE/get_types
+envoyer une requête (méthode GET) à l'URL : `NOM_SITE/get_types`
 
 La réponse est un JSON de format :
+```JSON
 {
 	types:[
 		NOM_TYPE_1,
@@ -53,3 +55,4 @@ La réponse est un JSON de format :
 		NOM_TYPE_N
 	]
 }
+```
