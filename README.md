@@ -24,7 +24,7 @@ Pour le moment, une seule requête par type de données que l'on souhaite envoye
 envoyer au serveur à l'URL : `NOM_SITE/request_data` et au port : `1234`
 
 ...une méthode GET présisant le type de la donnée recherchée, et par 2 timestamps l'intervalle désirée. Les clés correspondantes sont "`type`", "`temponDebut`", "`temponFin`"
-ex : `NOM_SITE/request_from_server?type=temperature&temponDebut=0&temponFin=2500`
+ex : `NOM_SITE/request_data?type=temperature&temponDebut=0&temponFin=2500`
 
 La réponse est un JSON de format (même format que réception des données) : 
 
