@@ -15,7 +15,7 @@ exports.HOTE_BASE_DE_DONNEES = "frfr.duckdns.org";
 exports.UTILISATEUR_BASE_DE_DONNEES = "root";
 exports.MOT_DE_PASSE_BASE_DE_DONNEES = "example";
 exports.BASE_DE_DONNEES = "BDD_iutteam";
-exports.LIMITE_CONNEXIONS_SIMULTANNEES = 10;
+exports.LIMITE_CONNEXIONS_SIMULTANNEES = 100;
 
 exports.URL_ENVOYER_DONNEES_SERVEUR = "/send_data";
 exports.URL_RECEVOIR_DONNEES_SERVEUR = "/request_data";
