@@ -11,10 +11,10 @@ exports.PROTOCOLE = "http://";
 exports.HOTE = "localhost";
 exports.PORT = 1234;
 
-exports.HOTE_BASE_DE_DONNEES = "serveurmysql";
-exports.UTILISATEUR_BASE_DE_DONNEES = "bboulle";
-exports.MOT_DE_PASSE_BASE_DE_DONNEES = "2511";
-exports.BASE_DE_DONNEES = "BDD_bboulle";
+exports.HOTE_BASE_DE_DONNEES = "frfr.duckdns.org";
+exports.UTILISATEUR_BASE_DE_DONNEES = "root";
+exports.MOT_DE_PASSE_BASE_DE_DONNEES = "example";
+exports.BASE_DE_DONNEES = "BDD_iutteam";
 exports.LIMITE_CONNEXIONS_SIMULTANNEES = 10;
 
 exports.URL_ENVOYER_DONNEES_SERVEUR = "/send_data";
