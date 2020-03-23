@@ -64,6 +64,7 @@ let envoyerDonneeAuServeur = async function(requete, callback) {
     		}
     		catch (error) {
     			console.log(error);
+    			mauvaiseRequete = true;
 				callback({
 					reponse : consts.ERREUR_REQUETE_INCORRECT,
 					codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
