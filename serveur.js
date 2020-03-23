@@ -56,7 +56,7 @@ let envoyerDonneeAuServeur = async function(requete, callback) {
 		        if (!typeExiste) {
 		        	await typeDAO.ajouterType(connexionSQL, type);
 		        }
-	    		for (let i = 0;i<donnees.length;i++) {
+	    		for (let i = 0; i < donnees.length; i += 1) {
 	    			let valeurCourante = donnees[i][0];
 	    			let dateCourante = donnees[i][1];
 	    			donneesDAO.ajouterDonnee(connexionSQL, type, valeurCourante, dateCourante);

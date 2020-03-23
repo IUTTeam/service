@@ -42,7 +42,7 @@ exports.EVENEMENT_FIN_TRANSMISSION = "end";
 exports.ERREUR_PREFIXE = "Erreur : ";
 exports.ERREUR_REQUETE_INCORRECT = "format de requête incorrect";
 exports.ERREUR_CONNEXION_PERDUE = "la connexion à la base de donnée a été perdue";
-exports.ERREUR_SURPLUS_CONNEXION = "trop de connexions simultannées";
+exports.ERREUR_SURPLUS_CONNEXION = "trop de connexions simultanées";
 exports.ERREUR_CONNEXION_REFUSEE = "connexion refusée";
 
 exports.RETOUR_SERVEUR_OPERATIONNEL = "Le serveur est opérationnel";
