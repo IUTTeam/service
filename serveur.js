@@ -1,39 +1,35 @@
-const http = require('http');
-const mysql = require('mysql');
-const util = require('util');
-const URL = require('url').URL;
-const donneesDAO = require('./DonneeDAO');
-const typeDAO = require('./TypeDAO');
-const consts = require('./Consts');
+const http = require("http");
+const mysql = require("mysql");
+const util = require("util");
+const URL = require("url").URL;
+const donneesDAO = require("./DonneeDAO");
+const typeDAO = require("./TypeDAO");
+const consts = require("./Consts");
 
 let traiteurRequetes = async function(requete,reponse)
 {
 	let txtReponse = "";
-	let codeReponse = 200;
+	let codeReponse = consts.CODE_REPONSE_CORRECT;
 	const requeteURL = new URL(consts.PROTOCOLE + requete.headers.host + requete.url);
 	let fonctionUtilisee = null;
     switch (requeteURL.pathname) {
     	case consts.URL_ENVOYER_DONNEES_SERVEUR:
     		fonctionUtilisee = envoyerDonneeAuServeur;
-		// console.log("1");
     		break;
         case consts.URL_RECEVOIR_DONNEES_SERVEUR:
         	fonctionUtilisee = recevoirDonneeDeServeur;
-		// console.log("2");
         	break;
         case consts.URL_RECEVOIR_TYPES_SERVEUR:
         	fonctionUtilisee = recevoirTypesDeServeur;
-		// console.log("3");
         	break;
         default:
-		// console.log("default");
         	fonctionUtilisee = requeteParDefaut;
         	break;
     }
 
     let envoyerReponse = function(retour) {
         reponse.statusCode = retour.codeReponse;
-    	reponse.setHeader('Content-type', 'text/plain');
+    	reponse.setHeader(consts.TYPE_CONTENU, consts.CONTENU_TEXTE);
     	reponse.end(retour.reponse); 	
     }
 
@@ -46,12 +42,12 @@ let envoyerDonneeAuServeur = async function(requete, callback) {
 	const connexionSQL = getConnexionSQL();
 
     if (requete.method === consts.REQUETE_METHODE_POST) {
-    	let donneesPost = '';
-    	requete.on('data', function(partie) {
+    	let donneesPost = "";
+    	requete.on(consts.EVENEMENT_DONNEES, function(partie) {
         	donneesPost += partie.toString();
 
     	});
-    	requete.on('end', async function() {
+    	requete.on(consts.EVENEMENT_FIN_TRANSMISSION, async function() {
     		try {
 	    		donneesPost = JSON.parse(donneesPost);
 	    		let type = donneesPost.type;
@@ -69,14 +65,14 @@ let envoyerDonneeAuServeur = async function(requete, callback) {
     		catch (error) {
     			console.log(error);
 				callback({
-					"reponse" : consts.ERREUR_REQUETE_INCORRECT,
-					"codeReponse" : consts.CODE_REPONSE_MAUVAISE_REQUETE,
+					reponse : consts.ERREUR_REQUETE_INCORRECT,
+					codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
 				});
 			}
     		if (!mauvaiseRequete) {
 	    		callback({
-					"reponse" : "OK",
-					"codeReponse" : consts.CODE_REPONSE_CORRECT,
+					reponse : consts.RETOUR_DONNEE_AJOUTEE,
+					codeReponse : consts.CODE_REPONSE_CORRECT,
 				});
     		}
     	});
@@ -84,8 +80,8 @@ let envoyerDonneeAuServeur = async function(requete, callback) {
     else {
     	console.log(requete.method);
 		callback({
-			"reponse" : consts.ERREUR_REQUETE_INCORRECT,
-			"codeReponse" : consts.CODE_REPONSE_MAUVAISE_REQUETE,
+			reponse : consts.ERREUR_REQUETE_INCORRECT,
+			codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
 		});
 	}
 }
@@ -94,9 +90,9 @@ let recevoirDonneeDeServeur = async function(requete, callback) {
 	const connexionSQL = getConnexionSQL();
 	if (requete.method === consts.REQUETE_METHODE_GET) {
 		const requeteURL = new URL(consts.PROTOCOLE + requete.headers.host + requete.url);
-		const type = requeteURL.searchParams.get("type");
-		const temponDebut = parseInt(requeteURL.searchParams.get("temponDebut"));
-		const temponFin = parseInt(requeteURL.searchParams.get("temponFin"));
+		const type = requeteURL.searchParams.get(consts.URL_GET_TYPE);
+		const temponDebut = parseInt(requeteURL.searchParams.get(consts.URL_GET_TEMPON_DEBUT));
+		const temponFin = parseInt(requeteURL.searchParams.get(consts.URL_GET_TEMPON_FIN));
 		if (type !== null && temponDebut !== null && temponFin !== null) {
 			let donnees = await donneesDAO.getDonneesDeTypeIntervalle(connexionSQL, type, temponDebut, temponFin);
 			let json = {};
@@ -106,21 +102,21 @@ let recevoirDonneeDeServeur = async function(requete, callback) {
 				json.donnees.push([donnee.valeur, donnee.date]);
 			});
 			callback({
-				"reponse" : JSON.stringify(json),
-				"codeReponse" : consts.CODE_REPONSE_CORRECT,
+				reponse : JSON.stringify(json),
+				codeReponse : consts.CODE_REPONSE_CORRECT,
 			});			
 		}
 		else {
 			callback({
-				"reponse" : consts.ERREUR_REQUETE_INCORRECT,
-				"codeReponse" : consts.CODE_REPONSE_MAUVAISE_REQUETE,
+				reponse : consts.ERREUR_REQUETE_INCORRECT,
+				codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
 			});
 		}
 	}
 	else {
 		callback({
-			"reponse" : consts.ERREUR_REQUETE_INCORRECT,
-			"codeReponse" : consts.CODE_REPONSE_MAUVAISE_REQUETE,
+			reponse : consts.ERREUR_REQUETE_INCORRECT,
+			codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
 		});	
 	}
 }
@@ -136,22 +132,22 @@ let recevoirTypesDeServeur = async function(requete, callback) {
 			json.types.push(type[consts.ATTRIBUT_TYPE_NOM]);
 		});
 		callback({
-			"reponse" : JSON.stringify(json),
-			"codeReponse" : consts.CODE_REPONSE_CORRECT,
+			reponse : JSON.stringify(json),
+			codeReponse : consts.CODE_REPONSE_CORRECT,
 		});
 	}
 	else {
 		callback({
-			"reponse" : consts.ERREUR_REQUETE_INCORRECT,
-			"codeReponse" : consts.CODE_REPONSE_MAUVAISE_REQUETE,
+			reponse : consts.ERREUR_REQUETE_INCORRECT,
+			codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
 		});		
 	}
 }
 
 let requeteParDefaut = function(requete, callback) {
 	callback({
-		"reponse" : consts.RETOUR_PAGE_ACCUEIL,
-		"codeReponse" : consts.CODE_REPONSE_CORRECT,
+		reponse : consts.RETOUR_PAGE_ACCUEIL,
+		codeReponse : consts.CODE_REPONSE_CORRECT,
 	});
 }
 

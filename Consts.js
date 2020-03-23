@@ -21,13 +21,23 @@ exports.URL_ENVOYER_DONNEES_SERVEUR = "/send_data";
 exports.URL_RECEVOIR_DONNEES_SERVEUR = "/request_data";
 exports.URL_RECEVOIR_TYPES_SERVEUR = "/get_types";
 
+exports.URL_GET_TYPE = "type";
+exports.URL_GET_TEMPON_DEBUT = "temponDebut";
+exports.URL_GET_TEMPON_FIN = "temponFin";
+
 exports.REQUETE_METHODE_POST = "POST";
 exports.REQUETE_METHODE_GET = "GET";
 
 
+exports.TYPE_CONTENU = "Content-type";
+exports.CONTENU_TEXTE = "text/plain";
+
 exports.REQUETE_CLE_TYPE = "type";
 exports.REQUETE_CLE_DATE = "date";
 exports.REQUETE_CLE_VALEUR = "valeur";
+
+exports.EVENEMENT_DONNEES = "data";
+exports.EVENEMENT_FIN_TRANSMISSION = "end";
 
 exports.ERREUR_PREFIXE = "Erreur : ";
 exports.ERREUR_REQUETE_INCORRECT = "format de requête incorrect";
