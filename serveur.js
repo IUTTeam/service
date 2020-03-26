@@ -27,10 +27,13 @@ let traiteurRequetes = async function(requete,reponse)
         	break;
     }
 
-    let envoyerReponse = function(retour) {
+    let envoyerReponse = function(retour, connexionSQL) {
         reponse.statusCode = retour.codeReponse;
     	reponse.setHeader(consts.TYPE_CONTENU, consts.CONTENU_TEXTE);
-    	reponse.end(retour.reponse); 	
+    	reponse.end(retour.reponse);
+    	if (connexionSQL !== null) {
+    		connexionSQL.end();    		
+    	}
     }
 
     await fonctionUtilisee(requete, envoyerReponse);
@@ -56,11 +59,14 @@ let envoyerDonneeAuServeur = async function(requete, callback) {
 		        if (!typeExiste) {
 		        	await typeDAO.ajouterType(connexionSQL, type);
 		        }
+
+		        let requetes = [];
 	    		for (let i = 0; i < donnees.length; i += 1) {
 	    			let valeurCourante = donnees[i][0];
 	    			let dateCourante = donnees[i][1];
-	    			donneesDAO.ajouterDonnee(connexionSQL, type, valeurCourante, dateCourante);
+	    			requetes.push(donneesDAO.ajouterDonnee(connexionSQL, type, valeurCourante, dateCourante));
 	    		}
+	    		await Promise.all(requetes);
     		}
     		catch (error) {
     			console.log(error);
@@ -68,13 +74,13 @@ let envoyerDonneeAuServeur = async function(requete, callback) {
 				callback({
 					reponse : consts.ERREUR_REQUETE_INCORRECT,
 					codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
-				});
+				}, connexionSQL);
 			}
     		if (!mauvaiseRequete) {
 	    		callback({
 					reponse : consts.RETOUR_DONNEE_AJOUTEE,
 					codeReponse : consts.CODE_REPONSE_CORRECT,
-				});
+				}, connexionSQL);
     		}
     	});
     }
@@ -82,7 +88,7 @@ let envoyerDonneeAuServeur = async function(requete, callback) {
 		callback({
 			reponse : consts.ERREUR_REQUETE_INCORRECT,
 			codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
-		});
+		}, connexionSQL);
 	}
 }
 
@@ -155,13 +161,13 @@ let recevoirDonneeDeServeur = async function(requete, callback) {
 				callback({
 					reponse : JSON.stringify(retour),
 					codeReponse : consts.CODE_REPONSE_CORRECT,
-				});
+				}, connexionSQL);
 			}
 			else {
 				callback({
 					reponse : consts.ERREUR_REQUETE_RESSOURCE_NON_TROUVEE,
 					codeReponse : consts.CODE_REPONSE_RESSOURCE_NON_TROUVEE,
-				});	
+				}, connexionSQL);
 			}
 
 		}
@@ -169,14 +175,14 @@ let recevoirDonneeDeServeur = async function(requete, callback) {
 			callback({
 				reponse : consts.ERREUR_REQUETE_INCORRECT,
 				codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
-			});
+			}, connexionSQL);
 		}
 	}
 	else {
 		callback({
 			reponse : consts.ERREUR_REQUETE_INCORRECT,
 			codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
-		});	
+		}, connexionSQL);
 	}
 }
 
@@ -193,13 +199,13 @@ let recevoirTypesDeServeur = async function(requete, callback) {
 		callback({
 			reponse : JSON.stringify(json),
 			codeReponse : consts.CODE_REPONSE_CORRECT,
-		});
+		}, connexionSQL);
 	}
 	else {
 		callback({
 			reponse : consts.ERREUR_REQUETE_INCORRECT,
 			codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
-		});		
+		}, connexionSQL);
 	}
 }
 
@@ -207,7 +213,7 @@ let requeteParDefaut = function(requete, callback) {
 	callback({
 		reponse : consts.RETOUR_PAGE_ACCUEIL,
 		codeReponse : consts.CODE_REPONSE_CORRECT,
-	});
+	}, null);
 }
 
 let getConnexionSQL = function() {
