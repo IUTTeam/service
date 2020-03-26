@@ -12,7 +12,7 @@ exports.getTypes = async function(connexionSQL) {
 
 exports.ajouterType = async function(connexionSQL, nomType) { 
   await Promise.all([connexionSQL.query("INSERT INTO " + consts.TABLE_TYPES + "(" + consts.ATTRIBUT_TYPE_NOM + ") VALUES ('" + nomType + "');"),
-    connexionSQL.query("CREATE TABLE " + nomType + " (" + consts.ATTRIBUT_DONNEE_ID + " INTEGER PRIMARY KEY AUTO_INCREMENT, " + consts.ATTRIBUT_DONNEE_VALEUR + " INTEGER, " + consts.ATTRIBUT_DONNEE_DATE + " INTEGER);")]);
+    connexionSQL.query("CREATE TABLE " + nomType + " (" + consts.ATTRIBUT_DONNEE_ID + " INTEGER PRIMARY KEY AUTO_INCREMENT, " + consts.ATTRIBUT_DONNEE_VALEUR + " INTEGER, " + consts.ATTRIBUT_DONNEE_DATE + " INTEGER);"),]);
 };
 
 exports.supprimerType = async function(connexionSQL, nomType) {

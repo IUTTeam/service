@@ -79,7 +79,6 @@ let envoyerDonneeAuServeur = async function(requete, callback) {
     	});
     }
     else {
-    	console.log(requete.method);
 		callback({
 			reponse : consts.ERREUR_REQUETE_INCORRECT,
 			codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
@@ -91,21 +90,80 @@ let recevoirDonneeDeServeur = async function(requete, callback) {
 	const connexionSQL = getConnexionSQL();
 	if (requete.method === consts.REQUETE_METHODE_GET) {
 		const requeteURL = new URL(consts.PROTOCOLE + requete.headers.host + requete.url);
-		const type = requeteURL.searchParams.get(consts.URL_GET_TYPE);
-		const temponDebut = parseInt(requeteURL.searchParams.get(consts.URL_GET_TEMPON_DEBUT));
-		const temponFin = parseInt(requeteURL.searchParams.get(consts.URL_GET_TEMPON_FIN));
-		if (type !== null && temponDebut !== null && temponFin !== null) {
-			let donnees = await donneesDAO.getDonneesDeTypeIntervalle(connexionSQL, type, temponDebut, temponFin);
-			let json = {};
-			json.type = type;
-			json.donnees = [];
-			donnees.forEach(function(donnee) {
-				json.donnees.push([donnee.valeur, donnee.date]);
-			});
-			callback({
-				reponse : JSON.stringify(json),
-				codeReponse : consts.CODE_REPONSE_CORRECT,
-			});			
+		const donneesGet = JSON.parse(decodeURIComponent(requeteURL.searchParams.get(consts.URL_GET_DONNEES)));
+		if (donneesGet !== null) {
+			let type = donneesGet[consts.URL_GET_TYPE];
+			let intervalles = donneesGet[consts.URL_GET_INTERVALLES];
+			let requetes = [];
+
+			let typeExiste = await typeDAO.typeExiste(connexionSQL, type); 
+
+			if (typeExiste) {
+				// Permet de traiter chaque requete dans un thread different
+				intervalles.forEach(async function(intervalle) {
+					requetes.push(donneesDAO.getStatistiquesDeTypeIntervalle(connexionSQL, type, intervalle[0], intervalle[1]));
+				});
+
+				let stats = await Promise.all(requetes);
+
+				let min = NaN;
+				let max = NaN;
+				let moyenne = NaN;
+				let sommeMoyennes = 0;
+				let nbValeurs = 0;
+				let intervalleDebut = NaN;
+				let intervalleFin = NaN;
+
+
+				let retour = {};
+				retour.statsDonnees = [];
+
+				stats.forEach(function(stat) {
+
+					if (isNaN(min) || stat.min < min) {
+						min = stat.min;
+					}
+					if (isNaN(max) || stat.max > max) {
+						max = stat.max;
+					}
+					if (isNaN(intervalleDebut) || stat.intervalleDebut < intervalleDebut) {
+						intervalleDebut = stat.intervalleDebut;
+					}
+					if (isNaN(intervalleFin) || stat.intervalleFin > intervalleFin) {
+						intervalleFin = stat.intervalleFin;
+					}					
+
+					sommeMoyennes += stat.moyenne * stat.nb;
+					nbValeurs += stat.nb;
+
+					retour.statsDonnees.push(stat);
+
+				});
+
+				if (nbValeurs > 0) {
+					moyenne = sommeMoyennes / nbValeurs;
+				}
+
+				retour.statsGenerales = {};
+				retour.statsGenerales[consts.STAT_MIN] = min;
+				retour.statsGenerales[consts.STAT_MAX] = max;
+				retour.statsGenerales[consts.STAT_MOYENNE] = moyenne;
+				retour.statsGenerales[consts.STAT_NOMBRE] = nbValeurs;
+				retour.statsGenerales[consts.STAT_INTERVALLE_DEBUT] = intervalleDebut;
+				retour.statsGenerales[consts.STAT_INTERVALLE_FIN] = intervalleFin;
+
+				callback({
+					reponse : JSON.stringify(retour),
+					codeReponse : consts.CODE_REPONSE_CORRECT,
+				});
+			}
+			else {
+				callback({
+					reponse : consts.ERREUR_REQUETE_RESSOURCE_NON_TROUVEE,
+					codeReponse : consts.CODE_REPONSE_RESSOURCE_NON_TROUVEE,
+				});	
+			}
+
 		}
 		else {
 			callback({
@@ -161,18 +219,18 @@ let getConnexionSQL = function() {
 	  database: consts.BASE_DE_DONNEES,
 	})
 
-	pool.getConnection((err, connection) => {
-	  if (err) {
-	    if (err.code === consts.ERREUR_CONNEXION_PERDUE) {
-	      console.log(consts.ERREUR_PREFIXE + CODE_ERREUR_CONNEXION_PERDUE);
-	    }
-	    if (err.code === consts.ERREUR_SURPLUS_CONNEXION) {
-	      console.log(consts.ERREUR_PREFIXE + CODE_ERREUR_SURPLUS_CONNEXION);
-	    }
-	    if (err.code === consts.ERREUR_CONNEXION_REFUSEE) {
-	      console.log(consts.ERREUR_PREFIXE + CODE_ERREUR_CONNEXION_REFUSEE);
-	    }
-	  }
+	pool.getConnection(function(err, connection) {
+		if (err) {
+			if (err.code === consts.ERREUR_CONNEXION_PERDUE) {
+				console.log(consts.ERREUR_PREFIXE + CODE_ERREUR_CONNEXION_PERDUE);
+			}
+			if (err.code === consts.ERREUR_SURPLUS_CONNEXION) {
+				console.log(consts.ERREUR_PREFIXE + CODE_ERREUR_SURPLUS_CONNEXION);
+			}
+			if (err.code === consts.ERREUR_CONNEXION_REFUSEE) {
+				console.log(consts.ERREUR_PREFIXE + CODE_ERREUR_CONNEXION_REFUSEE);
+			}
+		}
 
 	  if (connection) {
 		connection.release();
