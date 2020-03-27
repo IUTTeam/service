@@ -5,6 +5,7 @@ const URL = require("url").URL;
 const donneesDAO = require("./DonneeDAO");
 const typeDAO = require("./TypeDAO");
 const consts = require("./Consts");
+let connexionSQL = null;
 
 let traiteurRequetes = async function(requete,reponse)
 {
@@ -27,13 +28,10 @@ let traiteurRequetes = async function(requete,reponse)
         	break;
     }
 
-    let envoyerReponse = function(retour, connexionSQL) {
+    let envoyerReponse = function(retour) {
         reponse.statusCode = retour.codeReponse;
     	reponse.setHeader(consts.TYPE_CONTENU, consts.CONTENU_TEXTE);
     	reponse.end(retour.reponse);
-    	if (connexionSQL !== null) {
-    		connexionSQL.end();    		
-    	}
     }
 
     await fonctionUtilisee(requete, envoyerReponse);
@@ -41,8 +39,6 @@ let traiteurRequetes = async function(requete,reponse)
 
 let envoyerDonneeAuServeur = async function(requete, callback) {
 	let mauvaiseRequete = false;
-
-	const connexionSQL = getConnexionSQL();
 
     if (requete.method === consts.REQUETE_METHODE_POST) {
     	let donneesPost = "";
@@ -74,13 +70,13 @@ let envoyerDonneeAuServeur = async function(requete, callback) {
 				callback({
 					reponse : consts.ERREUR_REQUETE_INCORRECT,
 					codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
-				}, connexionSQL);
+				});
 			}
     		if (!mauvaiseRequete) {
 	    		callback({
 					reponse : consts.RETOUR_DONNEE_AJOUTEE,
 					codeReponse : consts.CODE_REPONSE_CORRECT,
-				}, connexionSQL);
+				});
     		}
     	});
     }
@@ -88,12 +84,11 @@ let envoyerDonneeAuServeur = async function(requete, callback) {
 		callback({
 			reponse : consts.ERREUR_REQUETE_INCORRECT,
 			codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
-		}, connexionSQL);
+		});
 	}
 }
 
 let recevoirDonneeDeServeur = async function(requete, callback) {
-	const connexionSQL = getConnexionSQL();
 	if (requete.method === consts.REQUETE_METHODE_GET) {
 		const requeteURL = new URL(consts.PROTOCOLE + requete.headers.host + requete.url);
 		const donneesGet = JSON.parse(decodeURIComponent(requeteURL.searchParams.get(consts.URL_GET_DONNEES)));
@@ -161,13 +156,13 @@ let recevoirDonneeDeServeur = async function(requete, callback) {
 				callback({
 					reponse : JSON.stringify(retour),
 					codeReponse : consts.CODE_REPONSE_CORRECT,
-				}, connexionSQL);
+				});
 			}
 			else {
 				callback({
 					reponse : consts.ERREUR_REQUETE_RESSOURCE_NON_TROUVEE,
 					codeReponse : consts.CODE_REPONSE_RESSOURCE_NON_TROUVEE,
-				}, connexionSQL);
+				});
 			}
 
 		}
@@ -175,19 +170,18 @@ let recevoirDonneeDeServeur = async function(requete, callback) {
 			callback({
 				reponse : consts.ERREUR_REQUETE_INCORRECT,
 				codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
-			}, connexionSQL);
+			});
 		}
 	}
 	else {
 		callback({
 			reponse : consts.ERREUR_REQUETE_INCORRECT,
 			codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
-		}, connexionSQL);
+		});
 	}
 }
 
 let recevoirTypesDeServeur = async function(requete, callback) {
-	const connexionSQL = getConnexionSQL();
 	if (requete.method === consts.REQUETE_METHODE_GET) {
 		const requeteURL = new URL(consts.PROTOCOLE + requete.headers.host + requete.url);
 		const types = await typeDAO.getTypes(connexionSQL);
@@ -199,13 +193,13 @@ let recevoirTypesDeServeur = async function(requete, callback) {
 		callback({
 			reponse : JSON.stringify(json),
 			codeReponse : consts.CODE_REPONSE_CORRECT,
-		}, connexionSQL);
+		});
 	}
 	else {
 		callback({
 			reponse : consts.ERREUR_REQUETE_INCORRECT,
 			codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
-		}, connexionSQL);
+		});
 	}
 }
 
@@ -213,10 +207,10 @@ let requeteParDefaut = function(requete, callback) {
 	callback({
 		reponse : consts.RETOUR_PAGE_ACCUEIL,
 		codeReponse : consts.CODE_REPONSE_CORRECT,
-	}, null);
+	});
 }
 
-let getConnexionSQL = function() {
+let initConnexionSQL = function() {
 	const pool = mysql.createPool({
 	  connectionLimit: consts.LIMITE_CONNEXIONS_SIMULTANNEES,
 	  host: consts.HOTE_BASE_DE_DONNEES,
@@ -244,10 +238,11 @@ let getConnexionSQL = function() {
 	});
 
 	pool.query = util.promisify(pool.query);
-	return pool;
+	connexionSQL = pool;
 }
 
 let serveur = http.createServer(traiteurRequetes);
+initConnexionSQL();
 serveur.listen(consts.PORT, consts.HOTE, function() {
 	console.log(consts.RETOUR_SERVEUR_OPERATIONNEL);
 });
