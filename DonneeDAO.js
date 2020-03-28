@@ -9,7 +9,8 @@ exports.ajouterDonnee = async function(connexionSQL, type, unite, valeur, date) 
 };
 
 exports.getStatistiquesDeTypeIntervalle = async function(connexionSQL, type, unite, intervalleDebut, intervalleFin) {
-	let stats = (await connexionSQL.query("SELECT MIN(" + consts.ATTRIBUT_DONNEE_VALEUR + ") AS " + consts.STAT_MIN +
+	let stats = (await connexionSQL.query("SELECT " +
+		"MIN(" + consts.ATTRIBUT_DONNEE_VALEUR + ") AS " + consts.STAT_MIN +
 		", MAX(" + consts.ATTRIBUT_DONNEE_VALEUR + ") AS " + consts.STAT_MAX +
 		", AVG(" + consts.ATTRIBUT_DONNEE_VALEUR + ") AS " + consts.STAT_MOYENNE +
 		", COUNT(" + consts.ATTRIBUT_DONNEE_ID + ") AS " + consts.STAT_NOMBRE +

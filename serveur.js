@@ -121,11 +121,10 @@ let recevoirDonneeDeServeur = async function(requete, callback) {
 				retour.statsDonnees = [];
 
 				stats.forEach(function(stat) {
-
-					if (isNaN(min) || stat.min < min) {
+					if (stat.min !== null && (isNaN(min) || stat.min < min)) {
 						min = stat.min;
 					}
-					if (isNaN(max) || stat.max > max) {
+					if (stat.max !== null && (isNaN(max) || stat.max > max)) {
 						max = stat.max;
 					}
 					if (isNaN(intervalleDebut) || stat.intervalleDebut < intervalleDebut) {
