@@ -9,6 +9,7 @@ JSON
 ```
 {
 	"type":NOM_TYPE,
+	"unite":NOM_UNITE,
 	"donnees":[
 		[VALEUR_DONNEE_1, TIMESTAMP_PRISE_DONNEE_1],
 		[VALEUR_DONNEE_1, TIMESTAMP_PRISE_DONNEE_2],
@@ -34,6 +35,7 @@ JSON
 ```
 {
 	"type":NOM_TYPE,
+	"unite":NOM_UNITE,
 	"intervalles":[
 		[INTERVALLE_DEBUT_1, INTERVALLE_FIN_1],
 		[INTERVALLE_DEBUT_2, INTERVALLE_FIN_2],
@@ -92,10 +94,10 @@ JSON
 ```
 {
 	"types":[
-		NOM_TYPE_1,
-		NOM_TYPE_2,
+		{"type":NOM_TYPE_1, "unite":NOM_UNITE_1},
+		{"type":NOM_TYPE_2, "unite":NOM_UNITE_2},
 		...
-		NOM_TYPE_N
+		{"type":NOM_TYPE_N, "unite":NOM_UNITE_N}
 	]
 }
 ```

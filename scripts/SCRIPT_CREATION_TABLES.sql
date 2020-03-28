@@ -1,5 +1,5 @@
 CREATE TABLE types (
-	id INTEGER AUTO_INCREMENT,
-	nom varchar(25),
-	PRIMARY KEY(id)
+	type varchar(25),
+	unite varchar(25),
+	PRIMARY KEY(type, unite)
 );

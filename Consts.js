@@ -5,7 +5,8 @@ exports.ATTRIBUT_DONNEE_VALEUR = "valeur";
 exports.ATTRIBUT_DONNEE_DATE = "date";
 
 exports.ATTRIBUT_TYPE_ID = "id";
-exports.ATTRIBUT_TYPE_NOM = "nom";
+exports.ATTRIBUT_TYPE_NOM = "type";
+exports.ATTRIBUT_TYPE_UNITE = "unite";
 
 exports.PROTOCOLE = "http://";
 exports.HOTE = "localhost";
@@ -23,6 +24,7 @@ exports.URL_RECEVOIR_TYPES_SERVEUR = "/get_types";
 
 exports.URL_GET_DONNEES = "donnees";
 exports.URL_GET_TYPE = "type";
+exports.URL_GET_UNITE = "unite";
 exports.URL_GET_INTERVALLES = "intervalles";
 exports.URL_GET_INTERVALLE_DEBUT = "intervalleDebut";
 exports.URL_GET_INTERVALLE_FIN = "intervalleFin";

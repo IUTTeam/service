@@ -13,74 +13,74 @@ let traiteurRequetes = async function(requete,reponse)
 	let codeReponse = consts.CODE_REPONSE_CORRECT;
 	const requeteURL = new URL(consts.PROTOCOLE + requete.headers.host + requete.url);
 	let fonctionUtilisee = null;
-    switch (requeteURL.pathname) {
-    	case consts.URL_ENVOYER_DONNEES_SERVEUR:
-    		fonctionUtilisee = envoyerDonneeAuServeur;
-    		break;
-        case consts.URL_RECEVOIR_DONNEES_SERVEUR:
-        	fonctionUtilisee = recevoirDonneeDeServeur;
-        	break;
-        case consts.URL_RECEVOIR_TYPES_SERVEUR:
-        	fonctionUtilisee = recevoirTypesDeServeur;
-        	break;
-        default:
-        	fonctionUtilisee = requeteParDefaut;
-        	break;
-    }
+	switch (requeteURL.pathname) {
+		case consts.URL_ENVOYER_DONNEES_SERVEUR:
+			fonctionUtilisee = envoyerDonneeAuServeur;
+			break;
+		case consts.URL_RECEVOIR_DONNEES_SERVEUR:
+			fonctionUtilisee = recevoirDonneeDeServeur;
+			break;
+		case consts.URL_RECEVOIR_TYPES_SERVEUR:
+			fonctionUtilisee = recevoirTypesDeServeur;
+			break;
+		default:
+			fonctionUtilisee = requeteParDefaut;
+			break;
+	}
 
-    let envoyerReponse = function(retour) {
-        reponse.statusCode = retour.codeReponse;
-    	reponse.setHeader(consts.TYPE_CONTENU, consts.CONTENU_TEXTE);
-    	reponse.end(retour.reponse);
-    }
+	let envoyerReponse = function(retour) {
+		reponse.statusCode = retour.codeReponse;
+		reponse.setHeader(consts.TYPE_CONTENU, consts.CONTENU_TEXTE);
+		reponse.end(retour.reponse);
+	}
 
-    await fonctionUtilisee(requete, envoyerReponse);
+	await fonctionUtilisee(requete, envoyerReponse);
 }
 
 let envoyerDonneeAuServeur = async function(requete, callback) {
 	let mauvaiseRequete = false;
+	if (requete.method === consts.REQUETE_METHODE_POST) {
+		let donneesPost = "";
+		requete.on(consts.EVENEMENT_DONNEES, function(partie) {
+			donneesPost += partie.toString();
 
-    if (requete.method === consts.REQUETE_METHODE_POST) {
-    	let donneesPost = "";
-    	requete.on(consts.EVENEMENT_DONNEES, function(partie) {
-        	donneesPost += partie.toString();
+		});
+		requete.on(consts.EVENEMENT_FIN_TRANSMISSION, async function() {
+			try {
+				donneesPost = JSON.parse(donneesPost);
+				let type = donneesPost.type;
+				let unite = donneesPost.unite;
+				let donnees = donneesPost.donnees;
+				const typeExiste = await typeDAO.typeExiste(connexionSQL, type, unite);
+				if (!typeExiste) {
+					await typeDAO.ajouterType(connexionSQL, type, unite);
+				}
 
-    	});
-    	requete.on(consts.EVENEMENT_FIN_TRANSMISSION, async function() {
-    		try {
-	    		donneesPost = JSON.parse(donneesPost);
-	    		let type = donneesPost.type;
-	    		let donnees = donneesPost.donnees;
-		        const typeExiste = await typeDAO.typeExiste(connexionSQL, type);
-		        if (!typeExiste) {
-		        	await typeDAO.ajouterType(connexionSQL, type);
-		        }
-
-		        let requetes = [];
-	    		for (let i = 0; i < donnees.length; i += 1) {
-	    			let valeurCourante = donnees[i][0];
-	    			let dateCourante = donnees[i][1];
-	    			requetes.push(donneesDAO.ajouterDonnee(connexionSQL, type, valeurCourante, dateCourante));
-	    		}
-	    		await Promise.all(requetes);
-    		}
-    		catch (error) {
-    			console.log(error);
-    			mauvaiseRequete = true;
+				let requetes = [];
+				for (let i = 0; i < donnees.length; i += 1) {
+					let valeurCourante = donnees[i][0];
+					let dateCourante = donnees[i][1];
+					requetes.push(donneesDAO.ajouterDonnee(connexionSQL, type, unite, valeurCourante, dateCourante));
+				}
+				await Promise.all(requetes);
+			}
+			catch (error) {
+				console.log(error);
+				mauvaiseRequete = true;
 				callback({
 					reponse : consts.ERREUR_REQUETE_INCORRECT,
 					codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
 				});
 			}
-    		if (!mauvaiseRequete) {
-	    		callback({
+			if (!mauvaiseRequete) {
+				callback({
 					reponse : consts.RETOUR_DONNEE_AJOUTEE,
 					codeReponse : consts.CODE_REPONSE_CORRECT,
 				});
-    		}
-    	});
-    }
-    else {
+			}
+		});
+	}
+	else {
 		callback({
 			reponse : consts.ERREUR_REQUETE_INCORRECT,
 			codeReponse : consts.CODE_REPONSE_MAUVAISE_REQUETE,
@@ -94,15 +94,16 @@ let recevoirDonneeDeServeur = async function(requete, callback) {
 		const donneesGet = JSON.parse(decodeURIComponent(requeteURL.searchParams.get(consts.URL_GET_DONNEES)));
 		if (donneesGet !== null) {
 			let type = donneesGet[consts.URL_GET_TYPE];
+			let unite = donneesGet[consts.URL_GET_UNITE];
 			let intervalles = donneesGet[consts.URL_GET_INTERVALLES];
 			let requetes = [];
 
-			let typeExiste = await typeDAO.typeExiste(connexionSQL, type); 
+			let typeExiste = await typeDAO.typeExiste(connexionSQL, type, unite); 
 
 			if (typeExiste) {
 				// Permet de traiter chaque requete dans un thread different
 				intervalles.forEach(async function(intervalle) {
-					requetes.push(donneesDAO.getStatistiquesDeTypeIntervalle(connexionSQL, type, intervalle[0], intervalle[1]));
+					requetes.push(donneesDAO.getStatistiquesDeTypeIntervalle(connexionSQL, type, unite, intervalle[0], intervalle[1]));
 				});
 
 				let stats = await Promise.all(requetes);
@@ -188,7 +189,10 @@ let recevoirTypesDeServeur = async function(requete, callback) {
 		let json = {};
 		json.types = [];
 		types.forEach(function(type) {
-			json.types.push(type[consts.ATTRIBUT_TYPE_NOM]);
+			json.types.push({
+				type:type[consts.ATTRIBUT_TYPE_NOM],
+				unite:type[consts.ATTRIBUT_TYPE_UNITE]
+			});
 		});
 		callback({
 			reponse : JSON.stringify(json),
